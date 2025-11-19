@@ -44,6 +44,7 @@ fun AlcoolGasolinaPreco(navController: NavHostController,check:Boolean) {
     var gasolina by remember { mutableStateOf("") }
     var nomeDoPosto by remember { mutableStateOf("") }
     var checkedState by remember { mutableStateOf(check) }
+    var resultado by remember { mutableStateOf("Vamos Calcular?") }
 
     // A surface container using the 'background' color from the theme
     Surface(
@@ -61,15 +62,15 @@ fun AlcoolGasolinaPreco(navController: NavHostController,check:Boolean) {
             // Campo de texto para entrada do preço
             OutlinedTextField(
                 value = alcool,
-                onValueChange = { alcool = it }, // Atualiza o estado
+                onValueChange = { alcool = it.replace(",", ".") },
                 label = { Text("Preço do Álcool (R$)") },
-                modifier = Modifier.fillMaxWidth(), // Preenche a largura disponível
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number) // Configuração do teclado
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
             // Campo de texto para preço da Gasolina
             OutlinedTextField(
                 value = gasolina,
-                onValueChange = { gasolina = it },
+                onValueChange = { gasolina = it.replace(",", ".") },
                 label = { Text("Preço da Gasolina (R$)") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
@@ -88,7 +89,7 @@ fun AlcoolGasolinaPreco(navController: NavHostController,check:Boolean) {
                 .padding(16.dp),
                 horizontalArrangement = Arrangement.Start) {
                 Text(
-                    text = "75%",
+                    text = if (checkedState) "75%" else "70%",
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(top = 16.dp)
                 )
@@ -96,8 +97,8 @@ fun AlcoolGasolinaPreco(navController: NavHostController,check:Boolean) {
                     modifier = Modifier.semantics { contentDescription = "Escolha o percentual" },
                     checked = checkedState,
                     onCheckedChange = { checkedState = it
-                         saveConfig(context,checkedState)
-                                      },
+                        saveConfig(context,checkedState)
+                    },
                     thumbContent = {
                         if (checkedState) {
                             // Icon isn't focusable, no need for content description
@@ -113,7 +114,22 @@ fun AlcoolGasolinaPreco(navController: NavHostController,check:Boolean) {
             // Botão de cálculo
             Button(
                 onClick = {
+                    val precoAlcool = alcool.toDoubleOrNull()
+                    val precoGasolina = gasolina.toDoubleOrNull()
 
+                    if (precoAlcool != null && precoGasolina != null && precoGasolina > 0) {
+                        val fatorCorte = if (checkedState) 0.75 else 0.70
+
+                        val limiteAlcool = precoGasolina * fatorCorte
+
+                        resultado = if (precoAlcool <= limiteAlcool) {
+                            "Compensa Álcool!"
+                        } else {
+                            "Compensa Gasolina!"
+                        }
+                    } else {
+                        resultado = "Por favor, insira valores válidos."
+                    }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -122,7 +138,7 @@ fun AlcoolGasolinaPreco(navController: NavHostController,check:Boolean) {
 
             // Texto do resultado
             Text(
-                text = "Vamos Calcular?",
+                text = resultado,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 16.dp)
             )
