@@ -25,4 +25,6 @@
     <string name="confirm_delete_message">Tem certeza que deseja excluir este posto?</string>
     <string name="confirm_yes">Sim</string>
     <string name="confirm_no">Não</string>
+    <string name="title_new_station">Novo Posto</string>
+    <string name="title_edit_station">Editar Posto</string>
 </resources>

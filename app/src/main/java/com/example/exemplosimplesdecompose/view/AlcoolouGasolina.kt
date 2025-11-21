@@ -3,6 +3,7 @@ package com.example.exemplosimplesdecompose.view
 import android.Manifest
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import androidx.annotation.RequiresPermission
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,14 +17,18 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,14 +41,12 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import com.example.exemplosimplesdecompose.R
 import com.example.exemplosimplesdecompose.data.Coordinates
 import com.example.exemplosimplesdecompose.data.GasStation
 import com.google.android.gms.location.LocationServices
-import androidx.compose.runtime.LaunchedEffect
-import androidx.core.content.ContextCompat
-import android.content.pm.PackageManager
 
 @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
 fun fetchCurrentLocation(context: Context, onLocationFound: (Coordinates) -> Unit) {
@@ -52,11 +55,11 @@ fun fetchCurrentLocation(context: Context, onLocationFound: (Coordinates) -> Uni
     fusedLocationClient.lastLocation.addOnSuccessListener { location ->
         if (location != null) {
             onLocationFound(Coordinates(location.latitude, location.longitude))
-        } else {
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlcoolGasolinaPreco(
     navController: NavHostController,
@@ -86,8 +89,8 @@ fun AlcoolGasolinaPreco(
 
     LaunchedEffect(key1 = Unit) {
         if (index == -1) {
-            val hasFinePermission = ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-            val hasCoarsePermission = ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+            val hasFinePermission = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+            val hasCoarsePermission = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
 
             if (hasFinePermission || hasCoarsePermission) {
                 fetchCurrentLocation(context) { coords ->
@@ -97,134 +100,146 @@ fun AlcoolGasolinaPreco(
         }
     }
 
-    Surface(
-        modifier = Modifier
-            .fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Column(
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(if (isEditing) stringResource(R.string.title_edit_station) else stringResource(R.string.title_new_station))
+                }
+            )
+        }
+    ) { innerPadding ->
+        Surface(
             modifier = Modifier
-                .wrapContentSize(Alignment.Center)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize()
+                .padding(innerPadding),
+            color = MaterialTheme.colorScheme.background
         ) {
-            OutlinedTextField(
-                value = alcool,
-                onValueChange = { alcool = it.replace(",", ".") },
-                label = { Text(stringResource(R.string.alcool_price_label)) },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-            OutlinedTextField(
-                value = gasolina,
-                onValueChange = { gasolina = it.replace(",", ".") },
-                label = { Text(stringResource(R.string.gasolina_price_label)) },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-            OutlinedTextField(
-                value = nomeDoPosto,
-                onValueChange = { nomeDoPosto = it },
-                label = { Text(stringResource(R.string.gas_station_name_label)) },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
-            )
+            Column(
+                modifier = Modifier
+                    .wrapContentSize(Alignment.Center)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                OutlinedTextField(
+                    value = alcool,
+                    onValueChange = { alcool = it.replace(",", ".") },
+                    label = { Text(stringResource(R.string.alcool_price_label)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+                OutlinedTextField(
+                    value = gasolina,
+                    onValueChange = { gasolina = it.replace(",", ".") },
+                    label = { Text(stringResource(R.string.gasolina_price_label)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+                OutlinedTextField(
+                    value = nomeDoPosto,
+                    onValueChange = { nomeDoPosto = it },
+                    label = { Text(stringResource(R.string.gas_station_name_label)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+                )
 
-            Row(modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-                horizontalArrangement = Arrangement.Start) {
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                    horizontalArrangement = Arrangement.Start) {
+                    Text(
+                        text = if (checkedState) "75%" else "70%",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                    Switch(
+                        modifier = Modifier.semantics { contentDescription = context.getString(R.string.switch_content_description) },
+                        checked = checkedState,
+                        onCheckedChange = { checkedState = it
+                            saveConfig(context,checkedState)
+                        },
+                        thumbContent = {
+                            if (checkedState) {
+                                Icon(
+                                    imageVector = Icons.Filled.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                                )
+                            }
+                        }
+                    )
+                }
+
+                Button(
+                    onClick = {
+                        val precoAlcool = alcool.toDoubleOrNull()
+                        val precoGasolina = gasolina.toDoubleOrNull()
+
+                        if (precoAlcool != null && precoGasolina != null && precoGasolina > 0) {
+                            val fatorCorte = if (checkedState) 0.75 else 0.70
+
+                            val limiteAlcool = precoGasolina * fatorCorte
+
+                            resultado = if (precoAlcool <= limiteAlcool) {
+                                context.getString(R.string.result_alcohol_is_better)
+                            } else {
+                                context.getString(R.string.result_gasoline_is_better)
+                            }
+                        } else {
+                            resultado = context.getString(R.string.result_invalid_input)
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.calculate_button))
+                }
+
                 Text(
-                    text = if (checkedState) "75%" else "70%",
-                    style = MaterialTheme.typography.bodyLarge,
+                    text = resultado,
+                    style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(top = 16.dp)
                 )
-                Switch(
-                    modifier = Modifier.semantics { contentDescription = context.getString(R.string.switch_content_description) },
-                    checked = checkedState,
-                    onCheckedChange = { checkedState = it
-                        saveConfig(context,checkedState)
-                    },
-                    thumbContent = {
-                        if (checkedState) {
-                            Icon(
-                                imageVector = Icons.Filled.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                Button(
+                    onClick = {
+                        val precoAlcool = alcool.toDoubleOrNull()
+                        val precoGasolina = gasolina.toDoubleOrNull()
+                        val stationName = nomeDoPosto.ifEmpty { context.getString(R.string.gas_station_name_label) }
+
+                        if (precoAlcool != null && precoGasolina != null) {
+                            val newStation = GasStation(
+                                name = stationName,
+                                precoAlcool = precoAlcool,
+                                precoGasolina = precoGasolina,
+                                coord = currentCoords,
+                                dataCadastro = System.currentTimeMillis()
                             )
-                        }
-                    }
-                )
-            }
 
-            Button(
-                onClick = {
-                    val precoAlcool = alcool.toDoubleOrNull()
-                    val precoGasolina = gasolina.toDoubleOrNull()
+                            val currentList = getGasStationListJSON(context).toMutableList()
 
-                    if (precoAlcool != null && precoGasolina != null && precoGasolina > 0) {
-                        val fatorCorte = if (checkedState) 0.75 else 0.70
+                            if (isEditing && index in currentList.indices) {
+                                currentList[index] = newStation.copy(dataCadastro = currentList[index].dataCadastro)
+                            } else {
+                                currentList.add(newStation)
+                            }
 
-                        val limiteAlcool = precoGasolina * fatorCorte
-
-                        resultado = if (precoAlcool <= limiteAlcool) {
-                            context.getString(R.string.result_alcohol_is_better)
+                            saveGasStationListJSON(context, currentList)
+                            navController.navigate("listaDePostos?posto=refresh") {
+                                popUpTo("listaDePostos?posto={posto}") { inclusive = true }
+                            }
                         } else {
-                            context.getString(R.string.result_gasoline_is_better)
+                            resultado = context.getString(R.string.result_invalid_input)
                         }
-                    } else {
-                        resultado = context.getString(R.string.result_invalid_input)
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(stringResource(R.string.calculate_button))
-            }
-
-            Text(
-                text = resultado,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(top = 16.dp)
-            )
-            Button(
-                onClick = {
-                    val precoAlcool = alcool.toDoubleOrNull()
-                    val precoGasolina = gasolina.toDoubleOrNull()
-                    val stationName = nomeDoPosto.ifEmpty { context.getString(R.string.gas_station_name_label) }
-
-                    if (precoAlcool != null && precoGasolina != null) {
-                        val newStation = GasStation(
-                            name = stationName,
-                            precoAlcool = precoAlcool,
-                            precoGasolina = precoGasolina,
-                            coord = currentCoords,
-                            dataCadastro = System.currentTimeMillis()
-                        )
-
-                        val currentList = getGasStationListJSON(context).toMutableList()
-
-                        if (isEditing && index in currentList.indices) {
-                            currentList[index] = newStation.copy(dataCadastro = currentList[index].dataCadastro)
-                        } else {
-                            currentList.add(newStation)
-                        }
-
-                        saveGasStationListJSON(context, currentList)
-                        navController.navigate("listaDePostos?posto=refresh") {
-                            popUpTo("listaDePostos?posto={posto}") { inclusive = true }
-                        }
-                    } else {
-                        resultado = context.getString(R.string.result_invalid_input)
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(stringResource(R.string.save_button))
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.save_button))
+                }
             }
         }
     }
 }
+
 fun saveConfig(context: Context, switch_state:Boolean){
     val sharedFileName="config_Alc_ou_Gas"
     var sp: SharedPreferences = context.getSharedPreferences(sharedFileName, Context.MODE_PRIVATE)
