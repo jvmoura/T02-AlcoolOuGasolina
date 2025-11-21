@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">SimpleComposeExample</string>
+    <string name="welcome_title">Welcome to the Navigation Example!</string>
+    <string name="welcome_image_desc">Welcome image</string>
+    <string name="alcool_price_label">Alcohol Price (R$)</string>
+    <string name="gasolina_price_label">Gasoline Price (R$)</string>
+    <string name="gas_station_name_label">Gas Station Name (Optional)</string>
+    <string name="switch_content_description">Choose percentage</string>
+    <string name="calculate_button">Calculate</string>
+    <string name="save_button">Save</string>
+    <string name="default_result_text">Let\'s Calculate?</string>
+    <string name="result_alcohol_is_better">Alcohol is better!</string>
+    <string name="result_gasoline_is_better">Gasoline is better!</string>
+    <string name="result_invalid_input">Please, enter valid values.</string>
+    <string name="list_title">List of Gas Stations</string>
+    <string name="add_gas_station_desc">Add Gas Station</string>
+    <string name="details_title">Gas Station Details</string>
+    <string name="detail_alcohol_price">Alcohol Price</string>
+    <string name="detail_gasoline_price">Gasoline Price</string>
+    <string name="detail_registration_date">Registration Date</string>
+    <string name="detail_location">Location</string>
+    <string name="edit_button">Edit</string>
+    <string name="delete_button">Delete</string>
+    <string name="confirm_delete_title">Confirm Deletion</string>
+    <string name="confirm_delete_message">Are you sure you want to delete this gas station?</string>
+    <string name="confirm_yes">Yes</string>
+    <string name="confirm_no">No</string>
+</resources>
