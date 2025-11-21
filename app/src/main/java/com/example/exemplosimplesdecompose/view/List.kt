@@ -5,55 +5,139 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.example.exemplosimplesdecompose.R
 import com.example.exemplosimplesdecompose.data.Coordinates
 import com.example.exemplosimplesdecompose.data.GasStation
+import org.json.JSONArray
 import org.json.JSONObject
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
-import java.nio.charset.StandardCharsets
+fun gasStationToJson(gasStation: GasStation): JSONObject {
+    return JSONObject().apply {
+        put("name", gasStation.name)
+        put("precoAlcool", gasStation.precoAlcool)
+        put("precoGasolina", gasStation.precoGasolina)
+        put("dataCadastro", gasStation.dataCadastro)
+        put("lat", gasStation.coord.lat)
+        put("lgt", gasStation.coord.lgt)
+    }
+}
+
+fun jsonToGasStation(json: JSONObject?): GasStation {
+    val name = json?.optString("name", "") ?: ""
+    val precoAlcool = json?.optDouble("precoAlcool", 0.0) ?: 0.0
+    val precoGasolina = json?.optDouble("precoGasolina", 0.0) ?: 0.0
+    val dataCadastro = json?.optLong("dataCadastro", System.currentTimeMillis()) ?: System.currentTimeMillis()
+    val lat = json?.optDouble("lat", 41.40338) ?: 41.40338
+    val lgt = json?.optDouble("lgt", 2.17403) ?: 2.17403
+    return GasStation(name, precoAlcool, precoGasolina, Coordinates(lat, lgt), dataCadastro)
+}
+
+fun stringToJson_Safe(jsonString: String): JSONObject? {
+    return try {
+        JSONObject(jsonString)
+    } catch (e: Exception) {
+        null
+    }
+}
+
+const val SHARED_FILE_NAME = "gasStationListJSON"
+const val KEY_GAS_STATIONS = "gasStations"
+
+fun saveGasStationListJSON(context: Context, gasStationList: List<GasStation>){
+    Log.v("PDM25","Salvando lista de postos em JSON")
+    val sp: SharedPreferences = context.getSharedPreferences(SHARED_FILE_NAME, Context.MODE_PRIVATE)
+    val editor = sp.edit()
+    val jsonArray = JSONArray()
+    gasStationList.forEach { gasStation ->
+        jsonArray.put(gasStationToJson(gasStation))
+    }
+    editor.putString(KEY_GAS_STATIONS, jsonArray.toString())
+    editor.apply()
+}
+
+fun getGasStationListJSON(context: Context): List<GasStation>{
+    val sp: SharedPreferences = context.getSharedPreferences(SHARED_FILE_NAME, Context.MODE_PRIVATE)
+    val aux: String = sp.getString(KEY_GAS_STATIONS, "[]").toString()
+    val gasStationList = mutableListOf<GasStation>()
+
+    try {
+        val jsonArray = JSONArray(aux)
+        for (i in 0 until jsonArray.length()) {
+            val jsonObject = jsonArray.getJSONObject(i)
+            gasStationList.add(jsonToGasStation(jsonObject))
+        }
+    } catch (e: Exception) {
+        Log.e("PDM25", "Erro ao carregar lista de postos JSON: ${e.message}")
+    }
+    return gasStationList
+}
+
+fun deleteGasStationJSON(context: Context, gasStationToDelete: GasStation) {
+    val currentList = getGasStationListJSON(context).toMutableList()
+    val stationIndex = currentList.indexOfFirst {
+        it.name == gasStationToDelete.name &&
+                it.precoAlcool == gasStationToDelete.precoAlcool &&
+                it.precoGasolina == gasStationToDelete.precoGasolina &&
+                it.dataCadastro == gasStationToDelete.dataCadastro
+    }
+
+    if (stationIndex != -1) {
+        currentList.removeAt(stationIndex)
+        saveGasStationListJSON(context, currentList)
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListofGasStations(navController: NavHostController, posto:String) {
     val context= LocalContext.current
-   // val gasES = GasStation("Posto na Espanha", Coordenadas(41.40338, 2.17403))
-    val gasNY = GasStation("Posto em NY", Coordinates(40.7128, -74.0060))
-    val gasN= GasStation(posto,Coordinates(41.40338, 2.17403))
+    var postosComp by remember { mutableStateOf(getGasStationListJSON(context)) }
 
-   // val gasES = getGasStation(context)
-   // saveGasStation(context,gasN)
+    LaunchedEffect(posto) {
+        if (posto.isNotEmpty() && posto != "0.0") {
+            postosComp = getGasStationListJSON(context)
+        }
+    }
 
-   // val gasES = getGasStationSerializable(context)
-    //saveGasStationSerializable(context,gasN)
-
-    val gasES = getGasStationJSON(context)
-    saveGasStationJSON(context,gasN)
-
-    val postosComp = listOf(gasN, gasES, gasNY)
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Lista de Postos") }
+                title = { Text(stringResource(R.string.list_title)) }
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { navController.navigate("mainalcgas/-1/Novo Posto/0.0/0.0/0.0/0.0") }
+            ) {
+                Icon(Icons.Filled.Add, stringResource(R.string.add_gas_station_desc))
+            }
         }
     ) { innerPadding ->
         LazyColumn(
@@ -65,145 +149,29 @@ fun ListofGasStations(navController: NavHostController, posto:String) {
             items(postosComp) { item ->
                 Card(
                     onClick = {
-
-                        //Abrir Mapa
-                        // Cria o Intent para abrir o Google Maps
-                        val gmmIntentUri = Uri.parse("geo:${item.coord.lat},${item.coord.lgt}")
-                        val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri).apply {
-                            setPackage("com.google.android.apps.maps") // Garante que o Maps será usado
-                        }
-                        context.startActivity(mapIntent)
-
-
-
+                        val stationJson = gasStationToJson(item).toString()
+                        navController.navigate("detalhesPosto/${Uri.encode(stationJson)}")
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(10.dp)
+                        .padding(vertical = 4.dp)
                 ) {
-                    Box(Modifier.fillMaxSize()) {
+                    Column(modifier = Modifier.padding(16.dp)) {
                         Text(
                             text = item.name,
-                            modifier = Modifier.padding(16.dp)
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = "${stringResource(R.string.alcool_price_label)}: R$ ${item.precoAlcool}",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = "${stringResource(R.string.gasolina_price_label)}: R$ ${item.precoGasolina}",
+                            style = MaterialTheme.typography.bodyMedium
                         )
                     }
                 }
             }
         }
     }
-}
-fun saveGasStation(context: Context, gasStation: GasStation){
-    Log.v("PDM25","Salvando o posto")
-    val sharedFileName="lastGasStation"
-    var sp: SharedPreferences = context.getSharedPreferences(sharedFileName, Context.MODE_PRIVATE)
-    var editor = sp.edit()
-    editor.putString("nomeDoPosto",gasStation.name)
-    editor.putString("latitude",gasStation.coord.lat.toString())
-    editor.putString("latitude",gasStation.coord.lgt.toString())
-    editor.apply()
-}
-fun getGasStation(context: Context):GasStation{
-    val sharedFileName="lastGasStation"
-    var sp: SharedPreferences = context.getSharedPreferences(sharedFileName, Context.MODE_PRIVATE)
-    var gasStation = GasStation("Posto na Espanha", Coordinates(41.40338, 2.17403))
-    if(sp!=null) {
-        gasStation.name = sp.getString("nomeDoPosto", "").toString()
-    }
-    return gasStation
-}
-fun saveGasStationSerializable(context: Context, gasStation: GasStation){
-    Log.v("PDM25","Salvando o posto serializado")
-    var dt= ByteArrayOutputStream()
-    var oos = ObjectOutputStream(dt);
-    oos.writeObject(gasStation);
-    val sharedFileName="lastGasStationSer"
-    var sp: SharedPreferences = context.getSharedPreferences(sharedFileName, Context.MODE_PRIVATE)
-    var editor = sp.edit()
-    var aux= dt.toString(StandardCharsets.UTF_16.name())
-    Log.v("PDM25",aux)
-    editor.putString("posto1",aux)
-    editor.apply()
-}
-fun getGasStationSerializable(context: Context):GasStation{
-    val sharedFileName="lastGasStationSer"
-    var sp: SharedPreferences = context.getSharedPreferences(sharedFileName, Context.MODE_PRIVATE)
-    var gasStation = GasStation("PostoS", Coordinates(41.40338, 2.17403))
-    var aux: String
-    if(sp!=null) {
-        //Lendo bytes serializados
-        aux = sp.getString("posto1", "").toString()
-        Log.v("PDM25",aux)
-
-        if(aux.length>=2) {
-            //Convertendo em objeto
-            var bis: ByteArrayInputStream
-            bis = ByteArrayInputStream(aux.toByteArray(Charsets.UTF_16))
-            var obi: ObjectInputStream
-            obi = ObjectInputStream(bis)
-
-            //lendo
-            gasStation = obi.readObject() as GasStation
-        }
-    }
-    return gasStation
-}
-
-fun gasStationToJson(gasStation: GasStation): JSONObject {
-    return JSONObject().apply {
-        put("name", gasStation.name)
-        put("lat", gasStation.coord.lat)
-        put("lgt", gasStation.coord.lgt)
-    }
-}
-fun jsonToGasStation(json: JSONObject?): GasStation {
-    //Caso o json seja inválido existe um valor default (ternário a seguir)
-    val name = json?.optString("name", "") ?: ""
-    val lat = json?.optDouble("lat", 0.0) ?: 0.0
-    val lgt = json?.optDouble("lgt", 0.0) ?: 0.0
-    return GasStation(name, Coordinates(lat, lgt))
-}
-fun stringToJson_Safe(jsonString: String): JSONObject? {
-    return try {
-        JSONObject(jsonString)
-    } catch (e: Exception) {
-        null // Retorna null se a string não for um JSON válido
-    }
-}
-
-fun saveGasStationJSON(context: Context, gasStation: GasStation){
-    Log.v("PDM25","Salvando o posto em JSON")
-    val sharedFileName="lastGasStationJSON"
-    var sp: SharedPreferences = context.getSharedPreferences(sharedFileName, Context.MODE_PRIVATE)
-    var editor = sp.edit()
-    val jsonObject = gasStationToJson(gasStation)
-    Log.v("PDM",": "+jsonObject);
-    editor.putString("gasJSON",jsonObject.toString())
-    editor.apply()
-}
-fun getGasStationJSON(context: Context):GasStation{
-    val sharedFileName="lastGasStationJSON"
-    var sp: SharedPreferences = context.getSharedPreferences(sharedFileName, Context.MODE_PRIVATE)
-    lateinit var gasStation:GasStation
-    var aux: String
-    if(sp!=null) {
-        //Lendo bytes serializados
-        aux = sp.getString("gasJSON", "").toString()
-        Log.v("PDM25",aux)
-        //lendo
-        gasStation= jsonToGasStation(stringToJson_Safe(aux))
-
-    }
-    return gasStation
-}
-
-//Sugestão de métodos a serem usados para a versão final
-fun getListOfGasStation(context: Context):List<GasStation>{
-    val gasStation1 = GasStation("Posto na Espanha", Coordinates(41.40338, 2.17403))
-    val gasStation2 = GasStation("Posto em NY", Coordinates(40.7128, -74.0060))
-    val gasStation3= GasStation("Posto em Fortaleza",Coordinates(41.40338, 2.17403))
-
-    return listOf(gasStation1, gasStation2, gasStation3)
-}
-fun addGasStation(context: Context, gasStation: GasStation){
-
 }

@@ -1,3 +1,28 @@
 <resources>
     <string name="app_name">ExemploSimplesDeCompose</string>
+    <string name="welcome_title">Bem-vindos ao Navigation Example!</string>
+    <string name="welcome_image_desc">Imagem de boas-vindas</string>
+    <string name="alcool_price_label">Preço do Álcool (R$)</string>
+    <string name="gasolina_price_label">Preço da Gasolina (R$)</string>
+    <string name="gas_station_name_label">Nome do Posto (Opcional)</string>
+    <string name="switch_content_description">Escolha o percentual</string>
+    <string name="calculate_button">Calcular</string>
+    <string name="save_button">Salvar</string>
+    <string name="default_result_text">Vamos Calcular?</string>
+    <string name="result_alcohol_is_better">Compensa Álcool!</string>
+    <string name="result_gasoline_is_better">Compensa Gasolina!</string>
+    <string name="result_invalid_input">Por favor, insira valores válidos.</string>
+    <string name="list_title">Lista de Postos</string>
+    <string name="add_gas_station_desc">Adicionar Posto</string>
+    <string name="details_title">Detalhes do Posto</string>
+    <string name="detail_alcohol_price">Preço do Álcool</string>
+    <string name="detail_gasoline_price">Preço da Gasolina</string>
+    <string name="detail_registration_date">Data de Cadastro</string>
+    <string name="detail_location">Localização</string>
+    <string name="edit_button">Editar</string>
+    <string name="delete_button">Excluir</string>
+    <string name="confirm_delete_title">Confirmar Exclusão</string>
+    <string name="confirm_delete_message">Tem certeza que deseja excluir este posto?</string>
+    <string name="confirm_yes">Sim</string>
+    <string name="confirm_no">Não</string>
 </resources>
