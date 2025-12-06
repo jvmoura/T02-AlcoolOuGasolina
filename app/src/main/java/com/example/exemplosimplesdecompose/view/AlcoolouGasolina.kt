@@ -47,6 +47,9 @@ import com.example.exemplosimplesdecompose.R
 import com.example.exemplosimplesdecompose.data.Coordinates
 import com.example.exemplosimplesdecompose.data.GasStation
 import com.google.android.gms.location.LocationServices
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.isSystemInDarkTheme
 
 @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
 fun fetchCurrentLocation(context: Context, onLocationFound: (Coordinates) -> Unit) {
@@ -77,7 +80,7 @@ fun AlcoolGasolinaPreco(
     var nomeDoPosto by remember { mutableStateOf(initialName) }
     var checkedState by remember { mutableStateOf(check) }
     var resultado by remember { mutableStateOf(context.getString(R.string.default_result_text)) }
-
+    val isDark = isSystemInDarkTheme()
     var currentCoords by remember {
         mutableStateOf(
             if (initialLat != 0.0 && initialLgt != 0.0) Coordinates(initialLat, initialLgt)
@@ -127,21 +130,51 @@ fun AlcoolGasolinaPreco(
                     onValueChange = { alcool = it.replace(",", ".") },
                     label = { Text(stringResource(R.string.alcool_price_label)) },
                     modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = if (isDark) Color.White else Color.Black,
+                        unfocusedTextColor = if (isDark) Color.White else Color.Black,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = if (isDark) Color(0xFFE6E1E5) else Color(0xFF1C1B1F),
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        unfocusedBorderColor = if (isDark) Color(0xFFCAC4D0) else Color(0xFF49454F),
+                        focusedBorderColor = MaterialTheme.colorScheme.primary
+                    )
                 )
                 OutlinedTextField(
                     value = gasolina,
                     onValueChange = { gasolina = it.replace(",", ".") },
                     label = { Text(stringResource(R.string.gasolina_price_label)) },
                     modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = if (isDark) Color.White else Color.Black,
+                        unfocusedTextColor = if (isDark) Color.White else Color.Black,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = if (isDark) Color(0xFFE6E1E5) else Color(0xFF1C1B1F),
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        unfocusedBorderColor = if (isDark) Color(0xFFCAC4D0) else Color(0xFF49454F),
+                        focusedBorderColor = MaterialTheme.colorScheme.primary
+                    )
                 )
                 OutlinedTextField(
                     value = nomeDoPosto,
                     onValueChange = { nomeDoPosto = it },
                     label = { Text(stringResource(R.string.gas_station_name_label)) },
                     modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = if (isDark) Color.White else Color.Black,
+                        unfocusedTextColor = if (isDark) Color.White else Color.Black,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = if (isDark) Color(0xFFE6E1E5) else Color(0xFF1C1B1F),
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        unfocusedBorderColor = if (isDark) Color(0xFFCAC4D0) else Color(0xFF49454F),
+                        focusedBorderColor = MaterialTheme.colorScheme.primary
+                    )
                 )
 
                 Row(modifier = Modifier
